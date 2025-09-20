@@ -19,7 +19,6 @@ import { ToDosContext } from "../contexts/toDosContext.js";
 export default function SimpleContainer() {
 	const { updateToDos, setTodos } = useContext(ToDosContext); // ✅ get from context
 	const [currentTodoTitle, setCurrentTodoTitle] = useState("");
-	gi;
 
 	// handle display Tasks
 	const [displayFilter, setDisplayFilter] = useState("all");
