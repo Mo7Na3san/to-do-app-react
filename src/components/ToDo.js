@@ -3,10 +3,9 @@ import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 // importing icons
-import CheckCircleTwoToneIcon from "@mui/icons-material/CheckCircleTwoTone";
-import HighlightOffTwoToneIcon from "@mui/icons-material/HighlightOffTwoTone";
-import ChangeCircleTwoToneIcon from "@mui/icons-material/ChangeCircleTwoTone";
-import LowPriorityTwoToneIcon from "@mui/icons-material/LowPriorityTwoTone";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import ModeEditOutlineSharpIcon from "@mui/icons-material/ModeEditOutlineSharp";
+import CheckSharpIcon from "@mui/icons-material/CheckSharp";
 import { Button } from "@mui/material";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -34,6 +33,7 @@ export default function ToDoCard({ props, handleTaskDone }) {
 		const filteredTodos = updateToDos.filter((todo) => todo.id !== props.id);
 		setTodos(filteredTodos);
 		setOpenDialog(false);
+		localStorage.setItem("toDos", JSON.stringify(filteredTodos));
 	}
 	// functions to edit the task
 	const [openEditDialog, setOpenEditDialog] = useState(false);
@@ -55,13 +55,13 @@ export default function ToDoCard({ props, handleTaskDone }) {
 		}));
 	}
 	function handleSubmitChangesEditTask() {
-		// Update the todos
-		setTodos((prevTodos) =>
-			prevTodos.map((todo) =>
-				todo.id === props.id ? { ...todo, ...editedTask } : todo
-			)
+		const updatedTodos = updateToDos.map((todo) =>
+			todo.id === props.id ? { ...todo, ...editedTask } : todo
 		);
+		// Update the todos
+		setTodos(updatedTodos);
 		setOpenEditDialog(false);
+		localStorage.setItem("toDos", JSON.stringify(updatedTodos));
 	}
 	return (
 		<>
@@ -148,13 +148,13 @@ export default function ToDoCard({ props, handleTaskDone }) {
 				sx={{ minWidth: 275 }}
 				style={{
 					marginTop: "20px",
-					backgroundColor: "#02245eff",
 					borderBottom: props.completed
 						? "#4caf50 5px solid"
 						: "#b20000ff 5px solid",
 					transition: "all 0.3s ease",
 					zIndex: 2,
 					color: "#ffffffff",
+					backgroundColor: "#311b92",
 				}}
 			>
 				<Grid container spacing={2}>
@@ -169,6 +169,7 @@ export default function ToDoCard({ props, handleTaskDone }) {
 									marginBottom: "0px",
 									// eslint-disable-next-line no-dupe-keys
 									color: "#ffffffff",
+									textDecoration: props.completed ? "line-through" : "none",
 								}}
 							>
 								{props.title}
@@ -202,58 +203,49 @@ export default function ToDoCard({ props, handleTaskDone }) {
 								height: "100%",
 							}}
 						>
-							{" "}
-							{props.completed ? (
-								<LowPriorityTwoToneIcon
-									sx={{
-										fontSize: 30,
-										color: "#4caf50",
-										margin: "auto",
-										borderRadius: "50%",
-										height: "40px",
-										width: "40px",
-										cursor: "pointer",
-									}}
-									onClick={() => handleTaskDone(props.id)}
-								/>
-							) : (
-								<CheckCircleTwoToneIcon
-									sx={{
-										fontSize: 30,
-										color: "#ffffff",
-										backgroundColor: "#4caf50",
-										margin: "auto",
-										borderRadius: "50%",
-										height: "40px",
-										width: "40px",
-										cursor: "pointer",
-									}}
-									onClick={() => handleTaskDone(props.id)}
-								/>
-							)}
-							<ChangeCircleTwoToneIcon
+							<CheckSharpIcon
 								sx={{
 									fontSize: 30,
-									color: "#ffffff",
-									margin: "auto ",
-									backgroundColor: "#0066ffff",
-									borderRadius: "50%",
+									color: props.completed ? "#ffffff" : "#ffffff",
+									backgroundColor: props.completed ? "#4caf50" : "#ffffff",
+									border: "3px solid #4caf50",
+									margin: "auto",
 									height: "40px",
 									width: "40px",
 									cursor: "pointer",
+									borderRadius: "50%",
+									padding: "3px",
+									transition: "all 0.1s ease",
+								}}
+								onClick={() => handleTaskDone(props.id)}
+							/>
+							<ModeEditOutlineSharpIcon
+								sx={{
+									fontSize: 30,
+									color: "#4caf50",
+									margin: "auto ",
+									backgroundColor: "#ffffff",
+									borderRadius: "50%",
+									border: "3px solid #4caf50",
+									height: "40px",
+									width: "40px",
+									cursor: "pointer",
+									padding: "5px",
 								}}
 								onClick={handleEditTaskDetailsClick}
 							/>
-							<HighlightOffTwoToneIcon
+							<DeleteForeverIcon
 								sx={{
 									fontSize: 30,
-									color: "#ffffff",
+									color: "#b20000ff",
+									border: "3px solid #b20000ff",
 									margin: "auto ",
-									backgroundColor: "#b20000ff",
+									backgroundColor: "#ffffffff",
 									borderRadius: "50%",
 									height: "40px",
 									width: "40px",
 									cursor: "pointer",
+									padding: "4px",
 								}}
 								onClick={handleTaskDeleteBtn}
 							/>

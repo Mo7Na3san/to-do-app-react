@@ -7,6 +7,14 @@ const theme = createTheme({
 	typography: {
 		fontFamily: "Oswald",
 	},
+	palette: {
+		primary: {
+			main: "#311b92",
+		},
+		secondary: {
+			main: "#9575cd",
+		},
+	},
 });
 
 function App() {

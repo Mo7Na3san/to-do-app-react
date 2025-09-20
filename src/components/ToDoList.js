@@ -13,13 +13,31 @@ import { v4 as uuidv4 } from "uuid";
 import { useState } from "react";
 import { Grid } from "@mui/material";
 import TextField from "@mui/material/TextField";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { ToDosContext } from "../contexts/toDosContext.js";
 
 export default function SimpleContainer() {
 	const { updateToDos, setTodos } = useContext(ToDosContext); // ✅ get from context
 	const [currentTodoTitle, setCurrentTodoTitle] = useState("");
-	const todoCards = updateToDos.map((todo) => (
+	gi;
+
+	// handle display Tasks
+	const [displayFilter, setDisplayFilter] = useState("all");
+
+	function changeDisplayFilter(event, newFilter) {
+		if (newFilter !== null) {
+			// prevent null on deselect
+			setDisplayFilter(newFilter);
+		}
+	}
+
+	let filteredTodos = updateToDos;
+	if (displayFilter === "completed") {
+		filteredTodos = updateToDos.filter((todo) => todo.completed);
+	} else if (displayFilter === "not_completed") {
+		filteredTodos = updateToDos.filter((todo) => !todo.completed);
+	}
+	const todoCards = filteredTodos.map((todo) => (
 		<ToDoCard
 			id={todo.id}
 			key={todo.id}
@@ -34,9 +52,19 @@ export default function SimpleContainer() {
 			details: "details about New Task",
 			completed: false,
 		};
-		setTodos([...updateToDos, newTask]);
+		const updatedTodos = [...updateToDos, newTask];
+		setTodos(updatedTodos);
+		localStorage.setItem("toDos", JSON.stringify(updatedTodos));
 		setCurrentTodoTitle("");
 	}
+
+	// handle render the tasks if avaliable in local storage
+	useEffect(() => {
+		const storedTodos = localStorage.getItem("toDos") ?? "[]";
+		if (storedTodos) {
+			setTodos(JSON.parse(storedTodos));
+		}
+	}, []);
 	function handleOnChangeTitle(event) {
 		setCurrentTodoTitle(event.target.value);
 	}
@@ -45,7 +73,9 @@ export default function SimpleContainer() {
 			todo.id === id ? { ...todo, completed: !todo.completed } : todo
 		);
 		setTodos(updatedTodos);
+		localStorage.setItem("toDos", JSON.stringify(updatedTodos));
 	}
+
 	return (
 		<React.Fragment>
 			<CssBaseline />
@@ -60,7 +90,7 @@ export default function SimpleContainer() {
 					>
 						<div
 							style={{
-								paddingBottom: "36px",
+								paddingBottom: "25px",
 							}}
 						>
 							<Typography
@@ -72,66 +102,36 @@ export default function SimpleContainer() {
 							</Typography>
 							<Divider>FOLLOW YOUR TASKS</Divider>
 
-							<>
-								<Card
-									sx={{ minWidth: 275, boxShadow: 0 }}
-									style={{
-										marginTop: "5px",
-										padding: "16px",
-									}}
-								>
-									<Grid container spacing={2}>
-										<Grid
-											size={8}
-											sx={{ justifyContent: "center", alignContent: "center" }}
-										>
-											{" "}
-											<TextField
-												id="outlined-basic"
-												label="Task Title"
-												variant="outlined"
-												size="8"
-												sx={{ width: "100%" }}
-												onChange={handleOnChangeTitle}
-												value={currentTodoTitle}
-												onKeyDown={(e) => {
-													if (e.key === "Enter") {
-														e.preventDefault(); // prevent form submit/reload
-														handleAddNewTask();
-													}
-												}}
-											/>
-										</Grid>
-										<Grid size={4}>
-											{" "}
-											<Button
-												sx={{ width: "100%", height: "100%" }}
-												variant="contained"
-												color="primary"
-												type="submit"
-												size="4"
-												onClick={() => {
-													handleAddNewTask();
-												}}
-											>
-												Add Task
-											</Button>
-										</Grid>
-									</Grid>
-								</Card>
-							</>
 							{/* Toggle button list */}
 							<ToggleButtonGroup
 								aria-label="text alignment"
 								style={{ marginTop: "20px" }}
+								onChange={changeDisplayFilter}
+								value={displayFilter}
+								exclusive
+								sx={{ color: Text.primary }}
+								color="primary"
 							>
-								<ToggleButton value="">All</ToggleButton>
-								<ToggleButton value="">Done</ToggleButton>
-								<ToggleButton value="">Not done yet</ToggleButton>
+								<ToggleButton value="all">All</ToggleButton>
+								<ToggleButton value="completed">Done</ToggleButton>
+								<ToggleButton value="not_completed">Not done yet</ToggleButton>
+								{/* <ToggleButton value="priority">Priority</ToggleButton> */}
 							</ToggleButtonGroup>
 							{/* ===== Toggle button list ===== */}
 						</div>
 						{/* To Do cards */}
+						{displayFilter === "all" && filteredTodos.length === 0 && (
+							<Typography variant="body2" color="text.secondary">
+								No tasks to show
+							</Typography>
+						)}
+						{displayFilter === "not_completed" &&
+							filteredTodos.length === 0 &&
+							updateToDos.length > 0 && (
+								<Typography variant="body2" color="text.secondary">
+									All tasks are done
+								</Typography>
+							)}
 						<div
 							style={{
 								maxHeight: "40vh", // restrict height
@@ -143,12 +143,62 @@ export default function SimpleContainer() {
 								zIndex: 1,
 								backgroundColor: "#f2f2f2ff",
 								border: "1px solid #cccccc",
-								display: updateToDos.length === 0 ? "none" : "block",
+								display: filteredTodos.length === 0 ? "none" : "block",
 							}}
 						>
 							{todoCards}
 						</div>
 						{/* ====== To Do cards ====== */}
+						<>
+							<Card
+								sx={{ minWidth: 275, boxShadow: 0 }}
+								style={{
+									padding: "16px",
+									backgroundColor: "transparent",
+									position: "relative",
+								}}
+							>
+								<Grid container spacing={2}>
+									<Grid
+										size={8}
+										sx={{ justifyContent: "center", alignContent: "center" }}
+									>
+										{" "}
+										<TextField
+											id="outlined-basic"
+											label="Task Title"
+											variant="outlined"
+											size="8"
+											sx={{ width: "100%" }}
+											onChange={handleOnChangeTitle}
+											value={currentTodoTitle}
+											onKeyDown={(e) => {
+												if (e.key === "Enter") {
+													e.preventDefault(); // prevent form submit/reload
+													handleAddNewTask();
+												}
+											}}
+										/>
+									</Grid>
+									<Grid size={4}>
+										{" "}
+										<Button
+											sx={{ width: "100%", height: "100%" }}
+											variant="contained"
+											color="primary"
+											type="submit"
+											size="4"
+											onClick={() => {
+												handleAddNewTask();
+											}}
+											disabled={!currentTodoTitle.trim()}
+										>
+											Add Task
+										</Button>
+									</Grid>
+								</Grid>
+							</Card>
+						</>
 					</CardContent>
 				</Card>
 			</Container>
